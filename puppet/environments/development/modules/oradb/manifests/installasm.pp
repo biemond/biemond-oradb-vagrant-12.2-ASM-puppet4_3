@@ -384,7 +384,7 @@ define oradb::installasm(
         path      => $exec_path,
         cwd       => $grid_home,
         logoutput => true,
-        require => Exec["install oracle grid ${title}","run root.sh grid script ${title}"],
+        require   => Exec["install oracle grid ${title}","run root.sh grid script ${title}"],
       }
     }
 
