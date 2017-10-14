@@ -9,11 +9,11 @@ Package{allow_virtual => false,}
 # operating settings for Database & Middleware
 class oradb_asm_os {
 
-  swap_file::files { 'swap_file':
-    ensure       => present,
-    swapfilesize => '8 GB',
-    swapfile     => '/data/swap.1' 
-  }
+  # swap_file::files { 'swap_file':
+  #   ensure       => present,
+  #   swapfilesize => '8 GB',
+  #   swapfile     => '/data/swap.1' 
+  # }
 
   # set the tmpfs
   mount { '/dev/shm':
@@ -228,7 +228,7 @@ class nfs_defintion {
 }
 
 class oradb_asm {
-  require oradb_asm_os,nfs_defintion
+  require oradb_asm_os, nfs_defintion
 
     oradb::installasm{ 'db_linux-x64':
       version                => lookup('db_version'),
