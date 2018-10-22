@@ -230,7 +230,7 @@ class nfs_defintion {
 class oradb_asm {
   require oradb_asm_os, nfs_defintion
 
-    oradb::installasm{ 'db_linux-x64':
+    oradb::installasm{ 'grid_linux-x64':
       version                => lookup('db_version'),
       file                   => lookup('asm_file'),
       grid_type              => 'HA_CONFIG',
@@ -245,6 +245,36 @@ class oradb_asm {
       remote_file            => false,
       puppet_download_mnt_point => lookup('oracle_source'),
     }
+
+    oradb::opatchupgrade{'122000_opatch_upgrade_grid':
+      oracle_home               => lookup('grid_home_dir'),
+      patch_file                => 'p6880880_122010_Linux-x86-64.zip',
+      opversion                 => '12.2.0.1.14',
+      user                      => lookup('grid_os_user'),
+      group                     => 'oinstall',
+      download_dir              => lookup('oracle_download_dir'),
+      remote_file               => false,
+      puppet_download_mnt_point => lookup('oracle_source'),
+      require                   => Oradb::Installasm['grid_linux-x64'],
+    }
+
+    oradb::opatch { 'Oct2018RU_update_28714316_grid':
+      ensure                    => present,
+      oracle_product_home       => lookup('grid_home_dir'),
+      patch_file                => 'p28714316_122010_Linux-x86-64.zip',
+      patch_id                  => '28714316',
+      bundle_sub_patch_id       => '28662626', # sub patch_id of bundle patch ( else I can't detect it)
+      clusterware               => true,
+      use_opatchauto_utility    => true,
+      ocmrf                     => false,
+      user                      => lookup('grid_os_user'),
+      group                     => 'oinstall',
+      download_dir              => lookup('oracle_download_dir'),
+      remote_file               => false,
+      puppet_download_mnt_point => lookup('oracle_source'),
+      require                   => Oradb::Opatchupgrade['122000_opatch_upgrade_grid'],
+    }
+
 
     oradb::installdb{ 'db_linux-x64':
       version                => lookup('db_version'),
@@ -261,8 +291,39 @@ class oradb_asm {
       download_dir           => lookup('oracle_download_dir'),
       remote_file            => false,
       puppet_download_mnt_point => lookup('oracle_source'),
-      require                   => Oradb::Installasm['db_linux-x64'],
+      require                   => Oradb::Installasm['grid_linux-x64'],
     }
+
+   oradb::opatchupgrade{'122000_opatch_upgrade_db':
+      oracle_home               => lookup('oracle_home_dir'),
+      patch_file                => 'p6880880_122010_Linux-x86-64.zip',
+      opversion                 => '12.2.0.1.14',
+      user                      => lookup('oracle_os_user'),
+      group                     => lookup('oracle_os_group'),
+      download_dir              => lookup('oracle_download_dir'),
+      remote_file               => false,
+      puppet_download_mnt_point => lookup('oracle_source'),
+      require                   => Oradb::Installdb['db_linux-x64'],
+    }
+
+    oradb::opatch { 'Oct2018RU_update_28714316':
+      ensure                    => present,
+      oracle_product_home       => lookup('oracle_home_dir'),
+      patch_file                => 'p28714316_122010_Linux-x86-64.zip',
+      patch_id                  => '28714316',
+      bundle_sub_patch_id       => '28662603', # sub patch_id of bundle patch ( else I can't detect it)
+      bundle_sub_folder         => '28662603',
+      clusterware               => false,
+      use_opatchauto_utility    => false,
+      ocmrf                     => false,
+      user                      => lookup('oracle_os_user'),
+      group                     => 'oinstall',
+      download_dir              => lookup('oracle_download_dir'),
+      remote_file               => false,
+      puppet_download_mnt_point => lookup('oracle_source'),
+      require                   => Oradb::Opatchupgrade['122000_opatch_upgrade_db'],
+    }
+
 
     ora_asm_diskgroup{ 'RECO@+ASM':
       ensure          => 'present',
